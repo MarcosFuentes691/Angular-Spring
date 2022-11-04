@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Client } from './client';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import swal from 'sweetalert2';
 import { Router } from '@angular/router';
@@ -27,10 +27,13 @@ export class ClientService {
     return this.http.post(this.urlEndPoint, client, {headers: this.httpHeaders}).pipe(
       map((response: any) => response.client as Client),
       catchError(e => {
+        if (e.status == 400) {
+          return throwError(e);
+        }
         this.router.navigate(['/clients']);
         console.error(e.error.message);
         swal.fire(e.error.message, e.error.error, 'error');
-        return of(null);
+        return throwError(e);
       }
     ));
   }
@@ -51,6 +54,9 @@ export class ClientService {
       map((response: any) => response.client as Client),
       catchError(e => {
         this.router.navigate(['/clients']);
+        if (e.status == 400) {
+          return throwError(e);
+        }
         console.error(e.error.message);
         swal.fire(e.error.message, e.error.error, 'error');
         return of(null);
