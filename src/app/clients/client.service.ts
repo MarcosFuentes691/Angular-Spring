@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Client } from './client';
 import { Observable, of, throwError } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { map, catchError, tap } from 'rxjs/operators';
 import swal from 'sweetalert2';
 import { Router } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
@@ -19,8 +19,24 @@ export class ClientService {
     private router: Router
   ) { }
 
-  getClients(): Observable<Client[]> {
-    return this.http.get<Client[]>(this.urlEndPoint);
+  getClients(page: number): Observable<any> {
+    return this.http.get(this.urlEndPoint + '/page/' + page).pipe(
+      tap((response: any) => {
+        console.log('ClientService: tap 1');
+        (response.content as Client[]).forEach(client => console.log(client.name));
+      }),
+      map((response: any) => {
+        (response.content as Client[]).map(client => {
+          // client.name = client.name.toUpperCase();
+          return client;
+        });
+        return response;
+      }),
+      tap(response => {
+        console.log('ClientService: tap 2');
+        (response.content as Client[]).forEach(client => console.log(client.name));
+      })
+    );
   }
 
   create(client: Client): Observable<Client> {
